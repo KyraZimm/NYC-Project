@@ -9,17 +9,23 @@ public class PlayerScript : MonoBehaviour
     //movement vars
     private int speed;
     private bool canJump = true;
+    private bool isJumping = false;
+    private bool isWalking = false;
     private Animator playerAnim;
     private SpriteRenderer playerSprite;
     
     //components
     private Rigidbody2D rb;
+
+    private Vector3 startPos;
     
     void Start()
     {
         rb = gameObject.GetComponent<Rigidbody2D>();
         playerAnim = gameObject.GetComponent<Animator>();
         playerSprite = gameObject.GetComponent<SpriteRenderer>();
+
+        startPos = gameObject.transform.position;
     }
 
     void Update()
@@ -30,22 +36,24 @@ public class PlayerScript : MonoBehaviour
             speed = -5;
 
             playerSprite.flipX = true;
-            playerAnim.Play("WalkAnim");
+
+            isWalking = true;
         }
         else if (Input.GetKey(KeyCode.D))
         {
             speed = 5;
             playerSprite.flipX = false;
-            playerAnim.Play("WalkAnim");
+
+            isWalking = true;
         }
         else
         {
             speed = 0;
-            playerAnim.Play("Idle");
+            isWalking = false;
         }
         
         transform.Translate(speed * Time.deltaTime, 0, 0);
-        
+
         //jump
         if (canJump == true)
         {
@@ -54,9 +62,23 @@ public class PlayerScript : MonoBehaviour
                 Debug.Log("space pressed");
                 rb.AddForce(10 * Vector2.up, ForceMode2D.Impulse);
                 canJump = false;
+                isJumping = true;
             }
         }
-       
+        
+        if (isJumping)
+        {
+            playerAnim.Play("JumpAnim");
+        }
+        else if (isWalking)
+        {
+            playerAnim.Play("WalkAnim");
+        }
+        else
+        {
+            playerAnim.Play("Idle");
+        }
+
     }
 
     private void OnCollisionEnter2D(Collision2D col)
@@ -69,6 +91,16 @@ public class PlayerScript : MonoBehaviour
                 //connected
                 canJump = true;
             }
+            
+            isJumping = false;
+        }
+    }
+
+    private void OnTriggerEnter2D(Collider2D col)
+    {
+        if (col.gameObject.tag == "Barrel")
+        {
+            playerAnim.transform.position = startPos;
         }
     }
 }
