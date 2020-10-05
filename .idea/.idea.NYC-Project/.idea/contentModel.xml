@@ -11,6 +11,7 @@
           <e p="GameManager.cs" t="Include" />
           <e p="GoombaScript.cs" t="Include" />
           <e p="PlayerScript.cs" t="Include" />
+          <e p="StartScript.cs" t="Include" />
         </e>
       </e>
       <e p="NYC-Project.sln" t="IncludeFlat" />

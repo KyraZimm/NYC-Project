@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerScript : MonoBehaviour
 {
@@ -11,6 +12,7 @@ public class PlayerScript : MonoBehaviour
     private bool canJump = true;
     private bool isJumping = false;
     private bool isWalking = false;
+    private bool canMove = true;
     private Animator playerAnim;
     private SpriteRenderer playerSprite;
     
@@ -18,6 +20,8 @@ public class PlayerScript : MonoBehaviour
     private Rigidbody2D rb;
 
     private Vector3 startPos;
+
+    public Text uiText;
     
     void Start()
     {
@@ -29,6 +33,44 @@ public class PlayerScript : MonoBehaviour
     }
 
     void Update()
+    {
+        if (canMove)
+        {
+            HandleMovement();
+            Animate();
+        }
+        else
+        {
+            playerAnim.Play("Idle");
+        }
+        
+
+    }
+
+    private void OnCollisionEnter2D(Collision2D col)
+    {
+        if (col.gameObject.tag == "Platform")
+        {
+            Debug.Log(rb.velocity);
+            if (rb.velocity.y <= 0)
+            {
+                //connected
+                canJump = true;
+            }
+            
+            isJumping = false;
+        }
+    }
+
+    private void OnTriggerEnter2D(Collider2D col)
+    {
+        if (col.gameObject.tag == "Barrel")
+        {
+            StartCoroutine(DeathState());
+        }
+    }
+
+    private void HandleMovement()
     {
         //walking controls
         if (Input.GetKey(KeyCode.A))
@@ -65,7 +107,10 @@ public class PlayerScript : MonoBehaviour
                 isJumping = true;
             }
         }
-        
+    }
+
+    private void Animate()
+    {
         if (isJumping)
         {
             playerAnim.Play("JumpAnim");
@@ -78,29 +123,25 @@ public class PlayerScript : MonoBehaviour
         {
             playerAnim.Play("Idle");
         }
-
     }
 
-    private void OnCollisionEnter2D(Collision2D col)
+    private IEnumerator DeathState()
     {
-        if (col.gameObject.tag == "Platform")
-        {
-            Debug.Log(rb.velocity);
-            if (rb.velocity.y <= 0)
-            {
-                //connected
-                canJump = true;
-            }
-            
-            isJumping = false;
-        }
-    }
+        canMove = false;
+        
+        uiText.color = new Color(1, 0, 0);
+        uiText.text = "Hit!";
+        rb.simulated = false;
+        playerSprite.color = new Color(1, 0, 0);
 
-    private void OnTriggerEnter2D(Collider2D col)
-    {
-        if (col.gameObject.tag == "Barrel")
-        {
-            playerAnim.transform.position = startPos;
-        }
+        yield return new WaitForSeconds(1);
+
+        transform.position = startPos;
+        playerSprite.color = new Color(1, 1, 1);
+        canMove = true;
+        uiText.text = "";
+        rb.simulated = true;
+        
+        StopAllCoroutines();
     }
 }
